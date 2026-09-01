@@ -1,0 +1,247 @@
+/* Reset & Base Styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Typography */
+  --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  
+  /* Modern Editorial Color Palette */
+  --bg-primary: #fafafa;
+  --bg-secondary: #f4f4f5;
+  --bg-white: #ffffff;
+  
+  --text-primary: #18181b;
+  --text-secondary: #3f3f46;
+  --text-muted: #71717a;
+  
+  --border-color: #e4e4e7;
+  --border-color-dark: #d4d4d8;
+  
+  /* Restrained Slate Accents */
+  --accent-color: #0f172a;
+  --accent-hover: #1e293b;
+  --accent-light: #f1f5f9;
+  --accent-active: #2563eb;
+  
+  /* Fit Status Colors (Muted & Professional) */
+  --success-color: #166534;
+  --success-light: #f0fdf4;
+  --success-border: #bbf7d0;
+  
+  --warning-color: #9a3412;
+  --warning-light: #fffbeb;
+  --warning-border: #fde68a;
+  
+  --error-color: #9f1239;
+  --error-light: #fff1f2;
+  --error-border: #fecdd3;
+  
+  /* Premium 3D Editorial Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+  --shadow-3d-document: 
+    -1px 1px 0px var(--border-color),
+    -2px 2px 0px var(--border-color),
+    -3px 3px 0px var(--border-color),
+    -4px 4px 0px var(--border-color),
+    -8px 8px 16px rgba(0, 0, 0, 0.06);
+    
+  --transition-smooth: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color-dark);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* 3D Perspective and Document Elements */
+.perspective-container {
+  perspective: 1600px;
+  transform-style: preserve-3d;
+}
+
+.document-3d-sheet {
+  background: var(--bg-white);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-3d-document);
+  transform: rotateX(15deg) rotateY(-15deg) rotateZ(2deg);
+  transition: var(--transition-smooth);
+}
+
+.document-3d-sheet:hover {
+  transform: rotateX(10deg) rotateY(-10deg) rotateZ(1deg) translateY(-5px);
+  box-shadow: 
+    -1px 1px 0px var(--border-color),
+    -2px 2px 0px var(--border-color),
+    -3px 3px 0px var(--border-color),
+    -4px 4px 0px var(--border-color),
+    -5px 5px 0px var(--border-color),
+    -6px 6px 0px var(--border-color),
+    -12px 12px 24px rgba(0, 0, 0, 0.09);
+}
+
+/* Typography Helpers */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+.font-light { font-weight: 300; }
+.font-regular { font-weight: 400; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+/* Interactive UI Components */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family);
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  background: var(--bg-white);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-smooth);
+  gap: 0.5rem;
+  outline: none;
+}
+
+.btn:hover {
+  border-color: var(--border-color-dark);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: var(--accent-color);
+  color: var(--bg-white);
+  border-color: var(--accent-color);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.btn-primary:disabled {
+  background: var(--border-color);
+  border-color: var(--border-color);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* Print Stylesheet */
+@page {
+  size: A4;
+  margin: 14mm;
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+  }
+
+  .no-print, 
+  header, 
+  footer, 
+  nav, 
+  .btn, 
+  .tabs-container, 
+  .original-toggle-controls, 
+  .what-changed-panel {
+    display: none !important;
+  }
+
+  .printable-resume {
+    display: block !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 auto !important;
+    padding: 18mm !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+  }
+
+  .printable-resume * {
+    color: #000000 !important;
+  }
+
+  .resume-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}
+
+/* Reduced Motion Settings */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-delay: 0s !important;
+    animation-duration: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0s !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .document-3d-sheet, .document-3d-sheet:hover {
+    transform: none !important;
+    box-shadow: var(--shadow-md) !important;
+  }
+}
