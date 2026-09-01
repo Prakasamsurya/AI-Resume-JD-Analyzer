@@ -19,6 +19,12 @@ The system analyzes the candidate's actual resume evidence against the requireme
 
 The system is designed to work with different resumes and job descriptions rather than relying on fixed role-specific logic.
 
+<p align="center">
+  <img width="1327" height="604" alt="Screenshot 2026-09-01 160628" src="https://github.com/user-attachments/assets/3676f7f3-d786-460b-bd29-341590ec5ce4" />
+</p>
+
+
+
 ## How It Works
 
 ```text
@@ -40,5 +46,4 @@ Optimized Resume
       ↓
 Final Report
 
-<img width="1327" height="604" alt="image" src="https://github.com/user-attachments/assets/c85fba42-c38f-4d54-a0eb-2a79ed4ac88b" />
 
