@@ -1,0 +1,536 @@
+{
+  "name": "RESUME_PARSING_WORKFLOW",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "c70ddae3-b44a-42e7-a89d-4ba66be419d5",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1712,
+        16
+      ],
+      "id": "174262e7-cbc7-49b8-abba-d896c9923b1c",
+      "name": "Webhook",
+      "webhookId": "c70ddae3-b44a-42e7-a89d-4ba66be419d5"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "resume",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -1616,
+        192
+      ],
+      "id": "30d15f3d-681c-43f3-95ab-b930f834fab8",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -864,
+        128
+      ],
+      "id": "ed429154-39fa-45ed-8254-7a6c59f24cfe",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "ezgxHGS2JMzrCJBr",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"requirement_analysis\": [\n    {\n      \"requirement\": \"\",\n      \"status\": \"\",\n      \"resume_evidence\": \"\"\n    }\n  ],\n  \"strong_matches\": [],\n  \"weak_matches\": [],\n  \"not_demonstrated\": []\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -544,
+        128
+      ],
+      "id": "672cf75e-361d-47ec-a8e5-7e983221d1b2",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -576,
+        416
+      ],
+      "id": "8e540d4d-327a-4f33-b090-ff236cb6379d",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\n\nreturn {\n  json: {\n    job_description: item.json.body.job_description\n  },\n  binary: item.binary\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1600,
+        -176
+      ],
+      "id": "0800b0ff-f41d-408f-a709-31e819e847d7",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1c410cc2-733b-4343-af7f-1e4e5747db5a",
+              "name": "job_description",
+              "value": "={{ $('Code in JavaScript').item.json.job_description }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -1280,
+        208
+      ],
+      "id": "1ebe2dbf-b0b1-43f5-afb8-2cb4e33d9c58",
+      "name": "Resume + JD"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a resume-to-job-description matching evaluator.\n\nCompare the candidate resume with the job description.\n\nThis must work for ANY resume and ANY job description.\n\nCANDIDATE INFORMATION:\n\n{{ JSON.stringify($json) }}\n\nORIGINAL RESUME:\n\n{{ $('Extract from File').item.json.text }}\n\nJOB DESCRIPTION:\n\n{{ $json.job_description }}\n\n\nRULES\n\n1. Identify meaningful requirements ONLY from the job description.\n2. Use ONLY the resume as evidence about the candidate.\n3. Check the complete original resume, including summary, skills, experience, projects, education, certifications, achievements, and soft skills.\n4. Do not create requirements from the resume.\n5. Do not invent candidate information.\n6. Do not assume experience that is not shown.\n7. Distinguish skills from experience, seniority, years, deployment, leadership, and other scope requirements.\n8. For compound requirements, evaluate the main capability and important conditions before assigning the status.\n9. Strong Match = direct and meaningful evidence.\n10. Weak Match = related or partial evidence, but an important part is missing or unclear.\n11. Not Demonstrated = no meaningful evidence.\n12. Use concise factual resume_evidence.\n13. Every requirement must appear in exactly one match category.\n14. Do not duplicate requirements.\n15. Do not add extra fields.\n\n\nOUTPUT\n\nReturn ONLY this JSON:\n\n{\n  \"requirement_analysis\": [\n    {\n      \"requirement\": \"\",\n      \"status\": \"\",\n      \"resume_evidence\": \"\"\n    }\n  ],\n  \"strong_matches\": [],\n  \"weak_matches\": [],\n  \"not_demonstrated\": []\n}\n\nReturn valid JSON only.\nDo not use Markdown.\nDo not add explanations.\nDo not create an output wrapper.",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -1200,
+        16
+      ],
+      "id": "ccea8684-00f0-47d3-8d57-2eaa59922f97",
+      "name": "JD Verification"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert career assessment report generator.\n\nUse ONLY the verified matching result provided below.\n\nVERIFIED MATCHING RESULT:\n\n{{ JSON.stringify($json.output) }}\n\n\nSOURCE OF TRUTH\n\nThe verified matching result is authoritative.\n\nDo not change any Strong Match, Weak Match, or Not Demonstrated classification.\n\nDo not invent candidate information.\n\nDo not invent experience.\n\nDo not invent technologies.\n\nDo not invent projects.\n\nDo not invent achievements.\n\nDo not invent metrics.\n\nDo not assume that the candidate has a requirement simply because it appears in the job description.\n\nDo not introduce new matching decisions that are not supported by the verified result.\n\n\n==================================================\nRECOMMENDATION\n==================================================\n\nChoose exactly one:\n\nAPPLY\nAPPLY_AFTER_CHANGES\nREVIEW_REQUIRED\nNOT_RECOMMENDED\n\nBase the recommendation only on the overall pattern of the verified matching result.\n\nGeneral guidance:\n\nAPPLY:\nMost important requirements are strongly supported and there are no major demonstrated gaps.\n\nAPPLY_AFTER_CHANGES:\nThe candidate has meaningful alignment, but some important areas could be strengthened.\n\nREVIEW_REQUIRED:\nThe evidence is mixed or insufficient to confidently recommend applying.\n\nNOT_RECOMMENDED:\nMajor or essential requirements are not demonstrated and the overall alignment is poor.\n\nDo not use any other recommendation value.\n\n\n==================================================\nWHY\n==================================================\n\nWrite a concise explanation of the recommendation.\n\nMaximum 3 sentences.\n\nMention the most important strengths and gaps from the verified result.\n\nDo not introduce information that is not present in the verified result.\n\n\n==================================================\nRESUME IMPROVEMENTS\n==================================================\n\nCreate up to 5 practical suggestions based only on the verified result.\n\nPrioritize:\n\n- Weak Match requirements\n- Important Not Demonstrated requirements\n- Areas where existing evidence could be presented more clearly\n\nA resume improvement may suggest strengthening existing evidence.\n\nDo not tell the candidate to claim something that the verified result does not support.\n\nWhen a requirement is not demonstrated, phrase the suggestion as an action to gain or verify the missing experience, not as something to falsely add to the resume.\n\nDo not invent credentials, experience, tools, projects, responsibilities, or metrics.\n\n\n==================================================\nRELEVANT PROJECTS\n==================================================\n\nReturn up to 3 projects only when the verified result contains direct evidence connecting a project to the job requirements.\n\nUse only project names or project evidence explicitly present in the verified result.\n\nIf the verified result does not provide enough project evidence, return:\n\nRELEVANT_PROJECTS:\nNONE\n\n\n==================================================\nSKILLS TO PREPARE\n==================================================\n\nReturn up to 6 areas that are directly supported by the Weak Match or Not Demonstrated requirements.\n\nUse the requirement wording where appropriate.\n\nDo not introduce unrelated skills.\n\nDo not add skills merely because they are commonly useful for the role.\n\n\n==================================================\nINTERVIEW QUESTIONS\n==================================================\n\nCreate up to 6 interview questions based directly on the verified matching result.\n\nPrioritize:\n\n- weak areas\n- important missing requirements\n- important strong matches that the candidate should be able to explain\n\nQuestions must be based on the actual verified result.\n\nDo not assume an experience that the candidate has not demonstrated.\n\n\n==================================================\nACTION PLAN\n==================================================\n\nCreate up to 5 practical actions based on the verified result.\n\nActions may include:\n\n- improving how existing evidence is presented\n- building experience in a missing area\n- preparing for an identified skill gap\n- documenting existing project work\n- preparing examples for interview discussion\n\nDo not instruct the candidate to falsely add unsupported information to the resume.\n\n\n==================================================\nOUTPUT FORMAT\n==================================================\n\nReturn ONLY these seven sections.\n\nDo not return JSON.\n\nDo not use Markdown.\n\nDo not use curly braces.\n\nUse exactly this structure:\n\nRECOMMENDATION:\nAPPLY\n\nWHY:\nShort explanation.\n\nRESUME_IMPROVEMENTS:\n1. First improvement\n2. Second improvement\n\nRELEVANT_PROJECTS:\n1. Project one\n\nSKILLS_TO_PREPARE:\n1. Skill one\n2. Skill two\n\nINTERVIEW_QUESTIONS:\n1. Question one\n2. Question two\n\nACTION_PLAN:\n1. Action one\n2. Action two\n\n\n==================================================\nLIMITS\n==================================================\n\nWHY:\nMaximum 3 sentences.\n\nRESUME_IMPROVEMENTS:\nMaximum 5 items.\n\nRELEVANT_PROJECTS:\nMaximum 3 items.\n\nSKILLS_TO_PREPARE:\nMaximum 6 items.\n\nINTERVIEW_QUESTIONS:\nMaximum 6 items.\n\nACTION_PLAN:\nMaximum 5 items.\n\nIf there are no relevant projects:\n\nRELEVANT_PROJECTS:\nNONE\n\n\nFINAL RULE\n\nReturn only the seven sections.\n\nDo not include:\n\nrequirement_analysis\nstrong_matches\nweak_matches\nnot_demonstrated\n\nDo not repeat the complete job description.\n\nDo not add commentary before or after the report.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -1072,
+        -176
+      ],
+      "id": "80d81c5d-c38f-4924-a617-24a7dc110d6b",
+      "name": "Final Report"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {
+          "maxTokensToSample": 3500
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        -64
+      ],
+      "id": "d5dfb14b-3a20-4d01-9403-4f1eddf4ded4",
+      "name": "Groq Chat Model3",
+      "credentials": {
+        "groqApi": {
+          "id": "ezgxHGS2JMzrCJBr",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const chain3 = $('JD Verification').item.json.output;\n\nconst raw = $json.text ?? $json.output ?? $json.response ?? $json;\n\nif (typeof raw !== 'string' || !raw.trim()) {\n  throw new Error('Chain4 returned an empty response.');\n}\n\nconst text = raw.trim();\n\nfunction getSection(name, nextSection) {\n  const startMarker = name + ':';\n  const start = text.indexOf(startMarker);\n\n  if (start === -1) {\n    return '';\n  }\n\n  const contentStart = start + startMarker.length;\n\n  let contentEnd = text.length;\n\n  if (nextSection) {\n    const next = text.indexOf(nextSection + ':', contentStart);\n\n    if (next !== -1) {\n      contentEnd = next;\n    }\n  }\n\n  return text\n    .substring(contentStart, contentEnd)\n    .trim();\n}\n\nfunction getList(name, nextSection) {\n  const section = getSection(name, nextSection);\n\n  if (!section || section.toUpperCase() === 'NONE') {\n    return [];\n  }\n\n  return section\n    .split('\\n')\n    .map(item => item.trim())\n    .filter(item => item.length > 0)\n    .map(item => item.replace(/^\\d+[\\.\\)]\\s*/, ''))\n    .filter(item => item.length > 0);\n}\n\nlet recommendation = getSection(\n  'RECOMMENDATION',\n  'WHY'\n).split('\\n')[0]?.trim() || '';\n\nconst validRecommendations = [\n  'APPLY',\n  'APPLY_AFTER_CHANGES',\n  'REVIEW_REQUIRED',\n  'NOT_RECOMMENDED'\n];\n\nif (!validRecommendations.includes(recommendation)) {\n  recommendation = 'REVIEW_REQUIRED';\n}\n\nconst why = getSection(\n  'WHY',\n  'RESUME_IMPROVEMENTS'\n);\n\nconst resumeImprovements = getList(\n  'RESUME_IMPROVEMENTS',\n  'RELEVANT_PROJECTS'\n);\n\nconst relevantProjects = getList(\n  'RELEVANT_PROJECTS',\n  'SKILLS_TO_PREPARE'\n);\n\nconst skillsToPrepare = getList(\n  'SKILLS_TO_PREPARE',\n  'INTERVIEW_QUESTIONS'\n);\n\nconst interviewQuestions = getList(\n  'INTERVIEW_QUESTIONS',\n  'ACTION_PLAN'\n);\n\nconst actionPlan = getList(\n  'ACTION_PLAN',\n  null\n);\n\nconst finalReport = {\n  recommendation,\n  why,\n\n  requirement_analysis:\n    chain3.requirement_analysis ?? [],\n\n  strong_matches:\n    chain3.strong_matches ?? [],\n\n  weak_matches:\n    chain3.weak_matches ?? [],\n\n  not_demonstrated:\n    chain3.not_demonstrated ?? [],\n\n  resume_improvements:\n    resumeImprovements,\n\n  relevant_projects:\n    relevantProjects,\n\n  skills_to_prepare:\n    skillsToPrepare,\n\n  interview_questions:\n    interviewQuestions,\n\n  action_plan:\n    actionPlan\n};\n\nreturn [\n  {\n    json: {\n      output: finalReport\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        224
+      ],
+      "id": "31813f2c-3da5-438d-9534-d7c1207a4874",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract the candidate's full name and technical skills from the resume below.\n\nResume:\n\n{{ $json.text }}\n\nReturn only valid JSON in this exact format:\n\n{\n  \"candidate_name\": \"\",\n  \"technical_skills\": []\n}\n\nDo not add any other fields.\nDo not use Markdown.\nDo not use a code block.\nDo not invent information.",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -1536,
+        16
+      ],
+      "id": "68fa5a20-4096-42bd-9fed-610c6e17bb86",
+      "name": "Resume Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.text;\n\nconst parsed = JSON.parse(raw);\n\nreturn [\n  {\n    json: parsed\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1344,
+        -176
+      ],
+      "id": "3c20a8b4-8026-4f41-9599-2e3b51d85fa0",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {
+          "maxTokensToSample": 4096
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -208
+      ],
+      "id": "d3f3ba78-4286-4a47-b51b-a77386a33002",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "wTd5H8EA4FWzUdaX",
+          "name": "Groq account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional resume editor.\n\nCreate a concise targeted version of the candidate's original resume.\n\nORIGINAL RESUME:\n{{ $('Extract from File').item.json.text }}\n\nJOB DESCRIPTION:\n{{ $('Resume + JD').item.json.job_description }}\n\nRESUME IMPROVEMENT:\n{{ $json.text }}\n\nRULES:\n\nUse the original resume as the only source of truth.\n\nImprove wording and organization only when supported by the original resume.\n\nNever invent:\nskills\ntechnologies\ntools\nexperience\nresponsibilities\nprojects\ncertifications\nachievements\nmetrics\ndates\njob titles\nemployers\nleadership\nmanagement\ndeployment\nmonitoring\nproduction experience\nenterprise experience\nfeedback\ntesting\nstakeholder activities\n\nNever make a claim stronger than the original evidence.\n\nDo not add information merely because it appears in the job description.\n\nPreserve the original factual meaning.\n\nKeep the response SHORT.\n\nDo not rewrite information unnecessarily.\n\nReturn ONLY valid JSON.\n\nDo not return Markdown.\nDo not return explanations.\nDo not return recommendation.\nDo not return interview questions.\nDo not return action plan.\nDo not return changes_made.\nDo not return content_not_added.\n\nUse exactly this structure:\n\n{\n  \"candidate_name\": \"\",\n  \"professional_summary\": \"\",\n  \"technical_skills\": [],\n  \"experience\": [],\n  \"projects\": [],\n  \"education\": [],\n  \"certifications\": [],\n  \"achievements\": [],\n  \"soft_skills\": []\n}\n\nUse the original resume information directly.\n\nKeep experience bullets concise.\n\nKeep project descriptions concise.\n\nDo not expand descriptions.\n\nDo not duplicate information.\n\nIMPORTANT JSON RULES:\n\nUse standard JSON only.\n\nUse double quotes.\n\nDo not escape underscores.\n\nDo not use backslashes before underscores.\n\nDo not use Markdown code fences.\n\nMake sure every array and object is closed.\n\nMake sure the response ends with the final closing brace:\n\n}\n\nReturn the COMPLETE JSON before finishing.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -400,
+        96
+      ],
+      "id": "555234b0-1513-49fb-a58e-8ed8c2ec96a5",
+      "name": "Final Resume Builder"
+    },
+    {
+      "parameters": {
+        "jsCode": "const resumeRaw = $('Final Resume Builder').item.json.text;\n\nif (!resumeRaw || !resumeRaw.trim()) {\n  throw new Error('Final Resume Builder returned an empty response.');\n}\n\nlet cleaned = resumeRaw\n  .trim()\n  .replace(/^```json\\s*/i, '')\n  .replace(/^```\\s*/i, '')\n  .replace(/\\s*```$/i, '')\n  .replace(/\\\\_/g, '_')\n  .trim();\n\nlet optimizedResume;\n\ntry {\n  optimizedResume = JSON.parse(cleaned);\n} catch (error) {\n  throw new Error(\n    'Final Resume Builder returned invalid JSON: ' + error.message\n  );\n}\n\nconst reportText = $('Final Report').item.json.text || '';\n\nconst verification =\n  $('JD Verification').item.json.output || {};\n\nconst improvementRaw =\n  $('Resume Improvement').item.json.text || '';\n\nlet improvementData = {\n  improvements: [],\n  cannot_add: []\n};\n\nif (improvementRaw) {\n  let improvementCleaned = improvementRaw\n    .trim()\n    .replace(/^```json\\s*/i, '')\n    .replace(/^```\\s*/i, '')\n    .replace(/\\s*```$/i, '')\n    .replace(/\\\\_/g, '_')\n    .trim();\n\n  try {\n    improvementData = JSON.parse(improvementCleaned);\n  } catch (error) {\n    throw new Error(\n      'Resume Improvement returned invalid JSON: ' + error.message\n    );\n  }\n}\n\nconst recommendationMatch = reportText.match(\n  /RECOMMENDATION:\\s*([A-Z_]+)/\n);\n\nconst whyMatch = reportText.match(\n  /WHY:\\s*([\\s\\S]*?)(?=\\nRESUME_IMPROVEMENTS:)/\n);\n\nconst improvementsMatch = reportText.match(\n  /RESUME_IMPROVEMENTS:\\s*([\\s\\S]*?)(?=\\nRELEVANT_PROJECTS:)/\n);\n\nconst projectsMatch = reportText.match(\n  /RELEVANT_PROJECTS:\\s*([\\s\\S]*?)(?=\\nSKILLS_TO_PREPARE:)/\n);\n\nconst skillsMatch = reportText.match(\n  /SKILLS_TO_PREPARE:\\s*([\\s\\S]*?)(?=\\nINTERVIEW_QUESTIONS:)/\n);\n\nconst questionsMatch = reportText.match(\n  /INTERVIEW_QUESTIONS:\\s*([\\s\\S]*?)(?=\\nACTION_PLAN:)/\n);\n\nconst actionPlanMatch = reportText.match(\n  /ACTION_PLAN:\\s*([\\s\\S]*)$/\n);\n\nfunction parseNumberedList(value) {\n  if (!value) return [];\n\n  if (value.trim() === 'NONE') {\n    return [];\n  }\n\n  return value\n    .split('\\n')\n    .map(line => line.trim())\n    .filter(Boolean)\n    .map(line => line.replace(/^\\d+\\.\\s*/, ''));\n}\n\nconst analysis = {\n  recommendation: recommendationMatch\n    ? recommendationMatch[1].trim()\n    : null,\n\n  why: whyMatch\n    ? whyMatch[1].trim()\n    : '',\n\n  requirement_analysis:\n    verification.requirement_analysis || [],\n\n  strong_matches:\n    verification.strong_matches || [],\n\n  weak_matches:\n    verification.weak_matches || [],\n\n  not_demonstrated:\n    verification.not_demonstrated || [],\n\n  resume_improvements:\n    parseNumberedList(\n      improvementsMatch ? improvementsMatch[1] : ''\n    ),\n\n  relevant_projects:\n    parseNumberedList(\n      projectsMatch ? projectsMatch[1] : ''\n    ),\n\n  skills_to_prepare:\n    parseNumberedList(\n      skillsMatch ? skillsMatch[1] : ''\n    ),\n\n  interview_questions:\n    parseNumberedList(\n      questionsMatch ? questionsMatch[1] : ''\n    ),\n\n  action_plan:\n    parseNumberedList(\n      actionPlanMatch ? actionPlanMatch[1] : ''\n    ),\n\n  optimization_ledger:\n    improvementData.improvements || [],\n\n  excluded_requirements:\n    improvementData.cannot_add || []\n};\n\nreturn [\n  {\n    json: {\n      analysis,\n      optimized_resume: optimizedResume\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -784,
+        416
+      ],
+      "id": "59fdc06b-8988-4597-b546-851c87a7ef6c",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -400,
+        -48
+      ],
+      "id": "b3a74814-7c35-4c77-89b1-5195d209d35f",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "OJqq25uE8C0icj2a",
+          "name": "Google Gemini(PaLM) Api account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -704,
+        128
+      ],
+      "id": "7192a979-1a0b-4025-8e95-dc51e782d367",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "OJqq25uE8C0icj2a",
+          "name": "Google Gemini(PaLM) Api account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional resume improvement assistant.\n\nYour task is to identify improvements that can be made to the candidate's existing resume so that it better represents the candidate for the provided job description.\n\nThis system must work with ANY resume and ANY job description.\n\nUse the ORIGINAL RESUME as the primary source of truth.\n\nORIGINAL RESUME:\n\n{{ $('Extract from File').item.json.text }}\n\nJOB DESCRIPTION:\n\n{{ $('Resume + JD').item.json.job_description }}\n\nVERIFIED JD ANALYSIS:\n\n{{ JSON.stringify($json.output) }}\n\n\n==================================================\nCORE RULE\n==================================================\n\nImprove the presentation of information that already exists.\n\nDo not create new evidence.\n\nA suggested improvement must be a conservative rewrite of existing resume evidence.\n\nYou may improve:\n\n- grammar\n- clarity\n- structure\n- conciseness\n- professional wording\n- relevance\n- emphasis\n- organization\n\nYou may combine existing facts only when the resulting statement remains fully supported by the original resume.\n\n\n==================================================\nSTRICT FACTUALITY\n==================================================\n\nNever invent or introduce:\n\n- skills\n- technologies\n- tools\n- frameworks\n- experience\n- responsibilities\n- projects\n- certifications\n- achievements\n- qualifications\n- job titles\n- employers\n- dates\n- metrics\n- percentages\n- user counts\n- business results\n- leadership\n- management\n- ownership\n- deployment\n- monitoring\n- production experience\n- enterprise experience\n- stakeholder activities\n- customer activities\n- feedback collection\n- testing activities\n- documentation activities\n- knowledge-sharing activities\n- learning activities\n- motivations\n- intentions\n\nDo not add something simply because it appears in the job description.\n\n\n==================================================\nMEANING PRESERVATION\n==================================================\n\nDo not make a claim stronger than the original evidence.\n\nDo not transform:\n\nskill → expertise\n\nknowledge → mastery\n\nexposure → experience\n\nproject → professional experience\n\ncollaboration → leadership\n\npresentation → stakeholder feedback\n\niteration → testing\n\nintegration → deployment\n\nreport generation → monitoring\n\nprompt engineering → prompt library creation\n\nSOP awareness → security or policy compliance\n\nbuilding a project → production deployment\n\n\n==================================================\nEVIDENCE REQUIREMENT\n==================================================\n\nEvery improvement must have explicit supporting evidence in the ORIGINAL RESUME.\n\nBefore creating an improvement:\n\n1. Find the exact supporting information in the original resume.\n2. Confirm that the JD requirement is relevant.\n3. Rewrite only what is supported.\n4. Preserve the original meaning.\n5. Remove any unsupported wording.\n\nIf there is no sufficient supporting evidence, do not create an improvement.\n\n\n==================================================\nVERIFIED ANALYSIS\n==================================================\n\nUse the verified JD analysis to identify useful areas for improvement.\n\nPrioritize:\n\n1. Weak Match requirements where the resume already contains related evidence.\n2. Not Demonstrated requirements only when the original resume actually contains overlooked supporting evidence.\n\nDo not override the verified classification.\n\nDo not create a new matching decision.\n\nIf the requirement is genuinely unsupported by the original resume, it must not be inserted into the resume.\n\n\n==================================================\nCANNOT ADD\n==================================================\n\nUse cannot_add only for important job requirements that are not supported by the original resume.\n\nDo not put a requirement in both improvements and cannot_add.\n\nDo not list every missing requirement.\n\nMaximum 8 items.\n\n\n==================================================\nIMPROVEMENTS\n==================================================\n\nMaximum 5 items.\n\nEach improvement must contain:\n\nsection\njd_requirement\nexisting_evidence\nsuggested_content\n\nsection:\nUse the actual resume section.\n\njd_requirement:\nUse the relevant requirement from the job description.\n\nexisting_evidence:\nUse only evidence actually present in the original resume.\n\nsuggested_content:\nProvide a conservative rewrite of that evidence.\n\nThe suggested content must not introduce any new fact, action, responsibility, result, context, stakeholder, technology, or level of responsibility.\n\n\n==================================================\nIMPORTANT\n==================================================\n\nIf the original resume already states the relevant information clearly, do not force a rewrite.\n\nIf no meaningful improvement can be made, return an empty improvements array.\n\nDo not invent improvements merely to fill the maximum.\n\n\n==================================================\nOUTPUT\n==================================================\n\nReturn ONLY valid JSON.\n\nDo not use Markdown.\n\nDo not use code fences.\n\nReturn exactly:\n\n{\n  \"candidate_name\": \"\",\n  \"improvements\": [\n    {\n      \"section\": \"\",\n      \"jd_requirement\": \"\",\n      \"existing_evidence\": \"\",\n      \"suggested_content\": \"\"\n    }\n  ],\n  \"cannot_add\": []\n}\n\n\n==================================================\nFINAL VALIDATION\n==================================================\n\nBefore returning the JSON:\n\n1. Every jd_requirement must come from the job description.\n2. Every existing_evidence value must come from the original resume.\n3. Every suggested_content value must remain faithful to the existing evidence.\n4. Do not add unsupported actions or responsibilities.\n5. Do not add invented metrics.\n6. Do not add invented skills or technologies.\n7. Do not add inferred motivation or learning claims.\n8. Do not add inferred stakeholder or customer activities.\n9. Do not add deployment or monitoring claims unless explicitly supported.\n10. Do not put the same requirement in both improvements and cannot_add.\n11. Keep the output concise.\n12. Return only the JSON object.",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -400,
+        224
+      ],
+      "id": "678bd9ee-391a-4f11-9301-24ad34222076",
+      "name": "Resume Improvement"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Resume Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Resume Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "JD Verification",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resume + JD": {
+      "main": [
+        [
+          {
+            "node": "JD Verification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JD Verification": {
+      "main": [
+        [
+          {
+            "node": "Final Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Report": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Final Report",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Resume Improvement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resume Parser": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Resume + JD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Resume Improvement",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Resume Builder": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Final Resume Builder",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "JD Verification",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resume Improvement": {
+      "main": [
+        [
+          {
+            "node": "Final Resume Builder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "0884c585-d1a2-4bb4-ba5f-7c95ef1994e0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "476fedc810caee5a17bd51da052e80bf2467afc769e99676ee1fc852ea260c1e"
+  },
+  "nodeGroups": [],
+  "id": "miDunMSIURo47IR4",
+  "tags": []
+}
