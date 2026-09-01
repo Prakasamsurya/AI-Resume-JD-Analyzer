@@ -39,3 +39,6 @@ Resume Improvement
 Optimized Resume
       ↓
 Final Report
+
+<img width="1327" height="604" alt="image" src="https://github.com/user-attachments/assets/c85fba42-c38f-4d54-a0eb-2a79ed4ac88b" />
+
